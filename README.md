@@ -205,11 +205,11 @@ After select an appropriate form you can customize it and preview it. ( How to c
 **Success** and **Failure** callback URLs need to be set up.
 
 This urls you can setup at:
-- click 'Account Info'
-- click 'Sub Account Admin'
+- click **Account Info**
+- click **Sub Account Admin**
 - select Any subaccount
-- click 'Advansed' section
-- Set `Approval Post URL` and `Denial Post URL`
+- click **Advansed** section
+- Set **Approval Post URL** and **Denial Post URL**
 
 For local machine ( development env ) I use [Ngrok](https://ngrok.com/download) to set valid path.
 
@@ -224,11 +224,11 @@ The following CCBill settings must be correct for the payment module to work cor
 
 Please work with your CCBill support representative to activate Dynamic Pricing for your account ( sub-account ). You can verify that Dynamic Pricing is active at **Account Info** > **Manage the subaccount menu** > **Pick 0000 subaccount from select menu** > **Feature Summary** at the bottom. in the Admin Portal. Your Dynamic Pricing status appears at the bottom of the **Billing Tools** section.
 
-IMAGE (Billing Tools)
+![Billing Tools](https://raw.githubusercontent.com/DmytroVasin/ccbill_ruby/master/images/billing_tools.png)
 
 Please note that if Dynamic Pricing is enabled on the subaccount level, ALL signup forms on that subaccount must use Dynamic Pricing in order to function correctly. This includes forms created on the subaccount prior to Dynamic Pricing being enabled. If Dynamic Pricing is enabled only on a particular form and not the entire subaccount, other forms on that subaccount will not be required to use Dynamic Pricing.
 
-IMAGE (URL_Library)
+![URL Library](https://raw.githubusercontent.com/DmytroVasin/ccbill_ruby/master/images/url_library.png)
 
 ### Creating a Salt / Encryption Key
 
@@ -236,8 +236,7 @@ A "salt" is a string of random data used to make your encryption more secure. **
 
 Make note of the Salt: this value will be entered into the your configuration file. ( `config/initializers/ccbill.rb` )
 
-
-IMAGE (ENCRYPTION KEY)
+![ENCRYPTION KEY](https://raw.githubusercontent.com/DmytroVasin/ccbill_ruby/master/images/encryption_key.png)
 
 ### Disabling User Management
 
@@ -248,7 +247,7 @@ Since this sub-account will be used for Dynamic Pricing transactions (not managi
 - Select **Turn off User Management** in the top section.
 - Select **Do Not Collect Usernames and Passwords** in the **Username Settings** section.
 
-IMAGE (Disabling User Management)
+![Disabling User Management](https://raw.githubusercontent.com/DmytroVasin/ccbill_ruby/master/images/disabling_user_management.png)
 
 ### Creating a New FlexForms Payment Form
 Here is standart [Getting Started with Flex Froms](https://kb.ccbill.com/FlexForms+Quick+Start+Guide).
@@ -273,7 +272,7 @@ Here is standart [Getting Started with Flex Froms](https://kb.ccbill.com/FlexFor
 > 2. This is URLS ( GET ) where user will be redirected after success/deny payment.
 > 3. We set `mppResponse=CheckoutSuccess` and `mppResponse=CheckoutFail` because we use this attribute at `callbacks/ccbills#show` action.
 
-IMAGE (URLs Editor)
+![URLs Editor](https://raw.githubusercontent.com/DmytroVasin/ccbill_ruby/master/images/url_editor.png)
 
 #### Create a New FlexForm
 
@@ -301,6 +300,8 @@ IMAGE (URLs Editor)
 
 While still in the **Sub Account Admin** section, select **Advanced** from the left menu. Notice the top section titled **Background Post Information**. We will be modifying the **Approval Post URL** and **Denial Post URL** fields.
 
+Path | URL
+--- | ---
 **Approval Post URL** | `http://[SiteHost or Ngrok]/callbacks/ccbill`
 **Denial Post URL** | `http://[SiteHost or Ngrok]/callbacks/ccbill`
 
@@ -308,7 +309,7 @@ CCBill calls this URL in background.
 
 Note: That will be `POST` request. In our case It will call `callbacks/ccbills#create` action. In this action based on patams we will find-out what request was called.
 
-IMAGE (Background Post Information)
+![Background Post Information](https://raw.githubusercontent.com/DmytroVasin/ccbill_ruby/master/images/background_post_information.png)
 
 **Your CCBill account is now configured**
 
@@ -324,12 +325,12 @@ Please read next:
 - [FlexForms Form Status and Live Mode](https://kb.ccbill.com/FlexForms+Form+Status+and+Live+Mode?page_ref_id=453)
 
 # Useful Links:
-[Dynamic Pricing](https://kb.ccbill.com/Dynamic+Pricing)
-[FlexForm FAQs](https://kb.ccbill.com/FlexForms+FAQs)
-[FlexForms Quick Start Guide](https://kb.ccbill.com/FlexForms+Quick+Start+Guide)
-[FlexForms Sandbox](https://kb.ccbill.com/FlexForms+Sandbox?page_ref_id=452)
-[FlexForms Form Status and Live Mode](https://kb.ccbill.com/FlexForms+Form+Status+and+Live+Mode?page_ref_id=453)
-[Test Transactions and Credit Cards](https://kb.ccbill.com/How+do+I+set+up+a+user+to+process+test+transactions)
+* [Dynamic Pricing](https://kb.ccbill.com/Dynamic+Pricing)
+* [FlexForm FAQs](https://kb.ccbill.com/FlexForms+FAQs)
+* [FlexForms Quick Start Guide](https://kb.ccbill.com/FlexForms+Quick+Start+Guide)
+* [FlexForms Sandbox](https://kb.ccbill.com/FlexForms+Sandbox?page_ref_id=452)
+* [FlexForms Form Status and Live Mode](https://kb.ccbill.com/FlexForms+Form+Status+and+Live+Mode?page_ref_id=453)
+* [Test Transactions and Credit Cards](https://kb.ccbill.com/How+do+I+set+up+a+user+to+process+test+transactions)
 
 # License
 
