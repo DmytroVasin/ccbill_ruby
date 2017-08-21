@@ -10,9 +10,8 @@ module CCBill
     #   desc: "Specify a configuration file path"
 
     def install
-      # require "figaro/cli/install"
-      # Install.start
-      puts "I'm a thor task!"
+      require './lib/ccbill_ruby/cli/install'
+      Install.start
     end
 
     # # figaro heroku:set

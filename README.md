@@ -30,6 +30,21 @@ $ rails generate ccbill:install
 
 This will create a controller (if one does not exist) and configure it with the default actions. The generator also configures your config/routes.rb file to point to the CCBill controller.
 
+
+## Example of usage:
+
+```ruby
+form = Ccbill::DynamicPricing.new({
+  initial_price_in_cents: 355
+  initial_period: 30,
+  order_id: 'Any configuration information'
+})
+
+form.valid?    #=> True/False
+form.url       #=> URL
+```
+
+
 ## Controller and methods:
 
 Before reading this part - please read [Setup guide](#setup-guide)

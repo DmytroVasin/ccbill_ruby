@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 
-# require "ccbill_ruby/cli"
 require "./lib/ccbill_ruby/cli.rb"
 
 CCBill::CLI.start( ARGV )
