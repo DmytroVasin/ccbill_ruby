@@ -1,6 +1,4 @@
-# GEM IS UNDER CONSNSTRUCTION!
-
-Please Mail me if any - 'dmytro.vasin@gmail.com'
+**Please mail me if any: dmytro.vasin@gmail.com**
 
 # CCBill SDK for Ruby
 
@@ -13,6 +11,10 @@ This gem provides:
   - Approve/Deny callback paths
   - Background Post path
 - Url/Form Generator for test and live mode
+
+
+> Important! CCBill provides two types of payment forms. FlexForms is our newest (and recommended) system. In this gem we use ONLY FlexForms.
+
 
 # Getting started
 
@@ -112,21 +114,11 @@ Before reading this part - please read [Setup guide](#setup-guide)
   end
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
 # Payment Flow
 
 To make some payment through CCBill via DynamiPricing:
+
+The payment form is the CCBill form that will be displayed to customers after they choose to check out using CCBill. The payment form accepts customer payment information, processes the payment, and returns the customer to your Site through callbacks ( GET ) where you can catche the response and do proper redirect:
 
 ### Step 1:
 
@@ -162,78 +154,44 @@ But here is two thing:
 
 ### Step 2:
 
-Redirect...
+`Approval Path` and `Deny Path` we set up [here](#create-an-approval-url)
+
+**Approval Path**
+
+This is the path customers take when their transaction is approved. The Approval Tile is always below the Primary and Deny Tile. When editing the Approval Path, your options are limited.
+
+**Deny Path**
+
+This is the path consumers take when they are declined on a transaction. They will be redirected to the deny path to try again. The Deny Tile is always to the right of the Primary Tile.
+
+To set up a Deny Path:
+
+- Click the Deny Tile. A new window has opened. It will be very similar to the one you saw when you created the Primary Tile.
+- Select one of several redirect options along the left side of the screen.
+  - New Form. Create a new FlexForm as you did for the Primary Tile.
+  - Existing Form. Use a previously made Form.
+  - URL. Add an external or internal link. Send customers back to your website or to a third party payment form.
+
+![Deny Path](https://raw.githubusercontent.com/DmytroVasin/ccbill_ruby/master/images/redirect_path.png)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-TODO: Video or Etc...
-TODO: NGrok.
-TODO: User should be logged in in the admin panel.
-TODO: Deny redirect happens only after three attempt.
-
-The payment form is the CCBill form that will be displayed to customers after they choose to check out using CCBill. The payment form accepts customer payment information, processes the payment, and returns the customer to your Site through callbacks ( GET ) where you can catche the response and do proper redirect:
+### Step 3:
+After previouse steps, ccbill returns the customer to your Site through callbacks ( GET ) where you can catche the response and do proper redirect:
 
 ```ruby
   callbacks_ccbill GET    /callbacks/ccbill(.:format)  callbacks/ccbills#show
                    POST   /callbacks/ccbill(.:format)  callbacks/ccbills#create
 ```
 
-> Important!
-> CCBill provides two types of payment forms. FlexForms is our newest (and recommended) system. In this gem we use ONLY FlexForms.
+### Step 4:
 
+Postback: According to `POST` action in your controller.
 
+Background Post allows Merchants to receive data posts from our system to a script that the Merchant creates. Merchants can parse that data from the script into their databases/tables for member tracking. Background Post only works for NEW transactions.
 
+Some kind of background callback to the app that happens on each attempt to Pay
 
-
-
-!!! https://kb.ccbill.com/How+do+I+set+up+a+user+to+process+test+transactions
-
-
-!!! All prices must be between $2.95 and $100.
-
-!!! CVV only metters!
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+This callback contains a lot of information of the attempt: [Background Post](https://kb.ccbill.com/Background+Post)
 
 
 
@@ -401,8 +359,12 @@ Please read next:
 # Dev Expirience:
 
 TODO:
-3) You are able to check the number and amount of test transactions you had in selected timeframe. In order to do so, please navigate to Reports >> Alphabetical list >> C >> Credit/check transactions >> select date range and select Test transactions from Options dropdown menu.
 
+TODO: NGrok.
+
+TODO: 3) You are able to check the number and amount of test transactions you had in selected timeframe. In order to do so, please navigate to Reports >> Alphabetical list >> C >> Credit/check transactions >> select date range and select Test transactions from Options dropdown menu.
+
+TODO: !!! All prices must be between $2.95 and $100.
 
 
 # Useful Links:
@@ -412,6 +374,7 @@ TODO:
 * [FlexForms Sandbox](https://kb.ccbill.com/FlexForms+Sandbox?page_ref_id=452)
 * [FlexForms Form Status and Live Mode](https://kb.ccbill.com/FlexForms+Form+Status+and+Live+Mode?page_ref_id=453)
 * [Test Transactions and Credit Cards](https://kb.ccbill.com/How+do+I+set+up+a+user+to+process+test+transactions)
+* [Background Post](https://kb.ccbill.com/Background+Post)
 
 # License
 
