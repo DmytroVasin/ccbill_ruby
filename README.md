@@ -35,6 +35,7 @@ This will create a controller (if one does not exist) and configure it with the 
 
 ## Example of usage:
 
+Simple version:
 ```ruby
 form = Ccbill::DynamicPricing.new({
   initial_price_in_cents: 355
@@ -46,6 +47,17 @@ form.valid?    #=> True/False
 form.url       #=> URL
 ```
 
+To prefill the form you can pass additional variables like: `customer_fname`, `customer_lname`, 'address1', etc. [Full list of variables](https://kb.ccbill.com/Webhooks+User+Guide#Payment_Form)
+
+```ruby
+form = Ccbill::DynamicPricing.new({
+  initial_price_in_cents: 355
+  initial_period: 30,
+  order_id: 'Any configuration information',
+  customer_fname: 'Dmytro',
+  customer_lname: 'Vasin'
+})
+```
 
 ## Controller and methods:
 
@@ -375,6 +387,7 @@ TODO: !!! All prices must be between $2.95 and $100.
 * [FlexForms Form Status and Live Mode](https://kb.ccbill.com/FlexForms+Form+Status+and+Live+Mode?page_ref_id=453)
 * [Test Transactions and Credit Cards](https://kb.ccbill.com/How+do+I+set+up+a+user+to+process+test+transactions)
 * [Background Post](https://kb.ccbill.com/Background+Post)
+* [Webhooks - prefil variables](https://kb.ccbill.com/Webhooks+User+Guide#Payment_Form)
 
 # License
 

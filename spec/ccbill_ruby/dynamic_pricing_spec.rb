@@ -33,7 +33,7 @@ describe CCBill::DynamicPricing do
 
         context 'with incorrect price' do
           let(:options) {{
-            initial_price: 1.00,
+            initial_price_in_cents: 100,
             initial_period: 30
           }}
 
@@ -41,7 +41,7 @@ describe CCBill::DynamicPricing do
             ccbill.valid?
             expect(ccbill.errors).to_not be_empty
             expect(ccbill.errors).to match_array([
-              'Price must be between $2.95 and $100.'
+              'Initial price must be between $2.95 and $100.'
             ])
           end
         end
@@ -49,7 +49,7 @@ describe CCBill::DynamicPricing do
 
       context 'is valid' do
         let(:options) {{
-          initial_price: 3.00,
+          initial_price_in_cents: 300,
           initial_period: 30
         }}
 
@@ -78,22 +78,41 @@ describe CCBill::DynamicPricing do
           ccbill.valid?
           expect(ccbill.errors).to_not be_empty
           expect(ccbill.errors).to match_array([
-            'Price must be between $2.95 and $100.',
+            'Initial price must be between $2.95 and $100.',
+            'Recurring price must be between $2.95 and $100.',
             'initial_period is required.',
             'initial_price is required.',
-            'rebills is required.',
+            'num_rebills is required.',
             'recurring_price is required.'
           ])
+        end
+
+        context 'with incorrect price' do
+          let(:options) {{
+            initial_price_in_cents: 3000,
+            initial_period: 30,
+            recurring_price_in_cents: 100,
+            recurring_period: 30,
+            num_rebills: 99
+          }}
+
+          it 'contains price specific error' do
+            ccbill.valid?
+            expect(ccbill.errors).to_not be_empty
+            expect(ccbill.errors).to match_array([
+              'Recurring price must be between $2.95 and $100.'
+            ])
+          end
         end
       end
 
       context 'is valid' do
         let(:options) {{
-          initial_price: 3.00,
+          initial_price_in_cents: 300,
           initial_period: 30,
-          recurring_price: 10.00,
+          recurring_price_in_cents: 1000,
           recurring_period: 30,
-          rebills: 99
+          num_rebills: 99
         }}
 
         it 'succeeds if all required fields included' do
@@ -132,7 +151,7 @@ describe CCBill::DynamicPricing do
     context 'single billing transactions' do
       it 'returns hexdigest of the proper fields' do
         ccbill = CCBill::DynamicPricing.new({
-          initial_price: 90.21,
+          initial_price_in_cents: 9021,
           initial_period: 30
         })
         string_value = ['90.21', '30', '840', '99999'].join
@@ -143,13 +162,13 @@ describe CCBill::DynamicPricing do
     context 'recurring transactions' do
       it 'returns hexdigest of the proper fields' do
         ccbill = CCBill::DynamicPricing.new({
-          initial_price: 90.21,
+          initial_price_in_cents: 9021,
           initial_period: 30,
-          recurring_price: 1,
+          recurring_price_in_cents: 300,
           recurring_period: 10,
-          rebills: 99
+          num_rebills: 99
         })
-        string_value = ['90.21', '30', '1', '10', '99', '840', '99999'].join
+        string_value = ['90.21', '30', '3.00', '10', '99', '840', '99999'].join
         expect(ccbill.send(:encode_form_digest)).to eq(Digest::MD5.hexdigest(string_value))
       end
     end
@@ -164,7 +183,7 @@ describe CCBill::DynamicPricing do
     context 'combined url' do
       let(:ccbill) do
         CCBill::DynamicPricing.new({
-          initial_price: 3.00,
+          initial_price_in_cents: 300,
           initial_period: 30
         })
       end
@@ -172,13 +191,14 @@ describe CCBill::DynamicPricing do
       it 'points to the sandbox by default' do
         host  = 'https://sandbox-api.ccbill.com/wap-frontflex/flexforms'
         path  = CCBill.configuration.flexform_id
+        digest_string = Digest::MD5.hexdigest(['3.00', '30', '840', '99999'].join)
         query = <<-QUERY.gsub(/\s+/, '').strip
           clientAccnum=111111&
           clientSubacc=0000&
           currencyCode=840&
-          initialPrice=3.0&
           initialPeriod=30&
-          formDigest=673e3c8a29af60a09f933e15bf86e5e1
+          initialPrice=3.00&
+          formDigest=#{digest_string}
         QUERY
 
         expect(ccbill.url).to eq("#{host}/#{path}?#{query}")
@@ -188,7 +208,7 @@ describe CCBill::DynamicPricing do
     context 'test mode' do
       let(:ccbill) do
         CCBill::DynamicPricing.new({
-          initial_price: 3.00,
+          initial_price_in_cents: 300,
           initial_period: 30
         })
       end
@@ -213,6 +233,20 @@ describe CCBill::DynamicPricing do
 
         expect(ccbill.url).to include('https://api.ccbill.com')
       end
+    end
+  end
+
+  describe '#fail_on_price_set' do
+    it 'fails when user sets initial_price or recurring_price mannually' do
+      expect {
+        CCBill::DynamicPricing.new({
+          initial_price:    30,
+          initial_period:   30,
+          recurring_price:  30,
+          recurring_period: 30,
+          num_rebills:      99
+        })
+      }.to raise_error(SyntaxError, "You misspelled! Gem uses initial_price_in_cents, recurring_price_in_cents value(s).")
     end
   end
 end

@@ -5,6 +5,8 @@ module CCBill
     attr_accessor :variables, :config, :errors
 
     def initialize(options = {})
+      fail_on_price_set(options)
+
       modified_options = modify_params(options)
 
       self.config = CCBill.configuration
@@ -31,7 +33,13 @@ module CCBill
       end
 
       unless (2.96..99.99).include?(variables[:initial_price].to_f)
-        @errors << 'Price must be between $2.95 and $100.'
+        @errors << 'Initial price must be between $2.95 and $100.'
+      end
+
+      if recurring?
+        unless (2.96..99.99).include?(variables[:recurring_price].to_f)
+          @errors << 'Recurring price must be between $2.95 and $100.'
+        end
       end
 
       @errors.empty?
@@ -46,7 +54,7 @@ module CCBill
           variables[:initial_period],
           variables[:recurring_price],
           variables[:recurring_period],
-          variables[:rebills],
+          variables[:num_rebills],
           variables[:currency_code],
           config.salt
         ]
@@ -63,7 +71,7 @@ module CCBill
     end
 
     def recurring?
-      variables[:recurring_price] || variables[:recurring_period] || variables[:rebills]
+      variables[:recurring_price] || variables[:recurring_period] || variables[:num_rebills]
     end
 
     def required_fields
@@ -76,7 +84,7 @@ module CCBill
         req += [
           :recurring_price,
           :recurring_period,
-          :rebills
+          :num_rebills
         ]
       end
 
@@ -92,7 +100,7 @@ module CCBill
         currency_code:    'currencyCode',
         recurring_price:  'recurringPrice',
         recurring_period: 'recurringPeriod',
-        rebills:          'numRebills',
+        num_rebills:      'numRebills',
         form_digest:      'formDigest'
       }[internal] || internal
     end
@@ -115,11 +123,23 @@ module CCBill
       initial_cents = options.delete(:initial_price_in_cents)
       options[:initial_price] = convert_to_price(initial_cents) if initial_cents
 
+      recurring_cents = options.delete(:recurring_price_in_cents)
+      options[:recurring_price] = convert_to_price(recurring_cents) if recurring_cents
+
       options
     end
 
     def convert_to_price(cents)
       '%.2f' % (cents / 100.to_f)
+    end
+
+    def fail_on_price_set(options)
+      compared_array = [:initial_price, :recurring_price] & options.keys
+      if compared_array.any?
+        array_with_cents = compared_array.map{|word| word.to_s + '_in_cents' }.join(', ')
+
+        fail SyntaxError, "You misspelled! Gem uses #{array_with_cents} value(s)."
+      end
     end
   end
 end
