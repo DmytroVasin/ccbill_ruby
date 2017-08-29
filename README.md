@@ -1,6 +1,10 @@
 **Please mail me if any: dmytro.vasin@gmail.com**
 
+---
+
 # CCBill SDK for Ruby
+
+[![Circle CI](https://circleci.com/gh/DmytroVasin/ccbill_ruby.svg?style=shield)](https://circleci.com/gh/DmytroVasin/ccbill_ruby)
 
 Unofficial CCBill SDK for Ruby.
 
