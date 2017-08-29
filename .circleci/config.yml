@@ -1,0 +1,10 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/circleci-ccbill-ruby
+    docker:
+      - image: circleci/ruby:2.4.1-node-browsers
+    steps:
+      - checkout
+      - run: bundle install
+      - run: bundle exec rspec spec
