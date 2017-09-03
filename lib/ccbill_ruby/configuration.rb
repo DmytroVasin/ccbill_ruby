@@ -8,6 +8,9 @@ module CCBill
     attr_accessor :salt
     attr_accessor :default_currency
 
+    attr_accessor :min_price
+    attr_accessor :max_price
+
     attr_accessor :account
     attr_accessor :sub_account
 
@@ -18,6 +21,9 @@ module CCBill
     def initialize
       @mode = :test
       @default_currency = '840' # USD
+
+      @min_price = 2.95
+      @max_price = 100
 
       @test_endpoint = TEST_ENDPOINT
       @live_endpoint = LIVE_ENDPOINT

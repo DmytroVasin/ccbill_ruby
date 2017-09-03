@@ -9,6 +9,8 @@
 Unofficial CCBill SDK for Ruby.
 
 This gem provides:
+- Interface for URL generation with simple validation
+- Postback verification (WebHooks)
 - Easy Install
 - Getting started guide
 - Generator that creates
@@ -441,7 +443,7 @@ Please read next:
 * [Price Minimums and Maximums](https://kb.ccbill.com/Price+Minimums+and+Maximums)
 * [Responses](https://github.com/DmytroVasin/ccbill_ruby/tree/master/responses)
 
-TODO: TimeTable.
+TODO: Datalink.
 
 # License
 

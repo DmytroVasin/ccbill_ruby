@@ -9,6 +9,8 @@ describe CCBill::DynamicPricing do
       config.account = '111111'
       config.sub_account = '0000'
       config.flexform_id = '1234567890'
+      config.min_price = '2.95'
+      config.max_price = '100'
     end
   end
 
@@ -17,7 +19,7 @@ describe CCBill::DynamicPricing do
 
     context 'single billing transactions' do
       context 'is invalid' do
-        context "with empty options" do
+        context 'with empty options' do
           let(:options) { {} }
 
           it 'fails if missing a required field' do
@@ -38,10 +40,32 @@ describe CCBill::DynamicPricing do
           }}
 
           it 'contains price specific error' do
-            ccbill.valid?
+            expect(ccbill.valid?).to be_falsey
             expect(ccbill.errors).to_not be_empty
             expect(ccbill.errors).to match_array([
               'Initial price must be between $2.95 and $100.'
+            ])
+          end
+        end
+
+        context 'with configured min/max price' do
+          let(:options) {{
+            initial_price_in_cents: 300,
+            initial_period: 30
+          }}
+
+          before do
+            CCBill.configure do |config|
+              config.min_price = '10'
+              config.max_price = '200'
+            end
+          end
+
+          it 'display correct error' do
+            expect(ccbill.valid?).to be_falsey
+            expect(ccbill.errors).to_not be_empty
+            expect(ccbill.errors).to match_array([
+              'Initial price must be between $10 and $200.'
             ])
           end
         end
@@ -60,6 +84,25 @@ describe CCBill::DynamicPricing do
         it 'lists no errors' do
           ccbill.valid?
           expect(ccbill.errors).to be_empty
+        end
+
+        context 'with configured min/max price' do
+          let(:options) {{
+            initial_price_in_cents: 15000,
+            initial_period: 30
+          }}
+
+          before do
+            CCBill.configure do |config|
+              config.min_price = '10'
+              config.max_price = '200'
+            end
+          end
+
+          it 'accept bigger amount then default' do
+            expect(ccbill.valid?).to be_truthy
+            expect(ccbill.errors).to be_empty
+          end
         end
       end
     end
@@ -104,6 +147,32 @@ describe CCBill::DynamicPricing do
             ])
           end
         end
+
+        context 'with configured min/max price' do
+          let(:options) {{
+            initial_price_in_cents: 300,
+            initial_period: 30,
+            recurring_price_in_cents: 300,
+            recurring_period: 30,
+            num_rebills: 99
+          }}
+
+          before do
+            CCBill.configure do |config|
+              config.min_price = '10'
+              config.max_price = '200'
+            end
+          end
+
+          it 'display correct error' do
+            expect(ccbill.valid?).to be_falsey
+            expect(ccbill.errors).to_not be_empty
+            expect(ccbill.errors).to match_array([
+              'Initial price must be between $10 and $200.',
+              'Recurring price must be between $10 and $200.'
+            ])
+          end
+        end
       end
 
       context 'is valid' do
@@ -122,6 +191,28 @@ describe CCBill::DynamicPricing do
         it "lists no errors" do
           ccbill.valid?
           expect(ccbill.errors).to be_empty
+        end
+
+        context 'with configured min/max price' do
+          let(:options) {{
+            initial_price_in_cents: 10000,
+            initial_period: 30,
+            recurring_price_in_cents: 15000,
+            recurring_period: 30,
+            num_rebills: 99
+          }}
+
+          before do
+            CCBill.configure do |config|
+              config.min_price = '10'
+              config.max_price = '200'
+            end
+          end
+
+          it 'accept bigger amount then default' do
+            expect(ccbill.valid?).to be_truthy
+            expect(ccbill.errors).to be_empty
+          end
         end
       end
     end

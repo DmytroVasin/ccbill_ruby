@@ -5,11 +5,12 @@ module CCBill
     attr_accessor :variables, :config, :errors
 
     def initialize(options = {})
+      self.config = CCBill.configuration
+
       fail_on_price_set(options)
 
       modified_options = modify_params(options)
 
-      self.config = CCBill.configuration
       self.variables = {
         account:        config.account,
         sub_account:    config.sub_account,
@@ -18,7 +19,7 @@ module CCBill
     end
 
     def url
-      raise DynamicPricingError.new(errors.join(' ')) if !valid?
+      raise DynamicPricingError.new(self.errors.join(' ')) if !valid?
 
       variables[:form_digest] = encode_form_digest
 
@@ -26,23 +27,23 @@ module CCBill
     end
 
     def valid?
-      @errors = []
+      self.errors = []
 
       required_fields.each do |field|
-        @errors << "#{field} is required." if !variables[field]
+        self.errors << "#{field} is required." if !variables[field]
       end
 
-      unless (2.95..100.00).include?(variables[:initial_price].to_f)
-        @errors << 'Initial price must be between $2.95 and $100.'
+      unless (config.min_price.to_f..config.max_price.to_f).include?(variables[:initial_price].to_f)
+        self.errors << "Initial price must be between $#{config.min_price} and $#{config.max_price}."
       end
 
       if recurring?
-        unless (2.95..100.00).include?(variables[:recurring_price].to_f)
-          @errors << 'Recurring price must be between $2.95 and $100.'
+        unless (config.min_price.to_f..config.max_price.to_f).include?(variables[:recurring_price].to_f)
+          self.errors << "Recurring price must be between $#{config.min_price} and $#{config.max_price}."
         end
       end
 
-      @errors.empty?
+      self.errors.empty?
     end
 
     private
