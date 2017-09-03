@@ -1,0 +1,15 @@
+{
+   "eventType": "Chargeback",
+   "accountingAmount":"19.99",
+   "accountingCurrency":"USD",
+   "accountingCurrencyCode":"840",
+   "amount":"19.99",
+   "clientAccnum":"007687",
+   "clientSubacc":"0001",
+   "currency":"USD",
+   "currencyCode":"840",
+   "reason":"Charged Back on 05\/05\/2016",
+   "subscriptionId":"02161032010000000000",
+   "timestamp":"2016-05-05 04:37:59",
+   "transactionId":"02161032010000000000"
+}

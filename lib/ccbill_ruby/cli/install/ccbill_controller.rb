@@ -17,21 +17,15 @@ module Callbacks
 
     # POST: Webhooks
     def create
-      postback = CCBill::Postback.new(response_params)
-
-      if postback.approval?
-        # Do something "Approval" postback.
-      else
-        # Do something "Deny" postback.
+      begin
+        # Your code goes here.
+      rescue StandardError => error
+        # I assume we should put `rescue` statement because CCBill will call our server again and again untill he will receive 200
+        # When there was failure of sending webhooks or the system was under maintenance at the moment.
       end
 
-      head :no_content
+      head :ok
     end
 
-    private
-
-    def response_params
-      @response_params ||= params.except(:controller, :action).to_unsafe_h
-    end
   end
 end

@@ -137,11 +137,6 @@ Before reading this part - please read [Setup guide](#setup-guide)
         head :ok
       end
 
-      private
-
-      def response_params
-        @response_params ||= params.except(:controller, :action).to_unsafe_h
-      end
     end
   end
 ```
@@ -415,10 +410,10 @@ Please read next:
 4. All prices must be between [$2.95 and $100](https://kb.ccbill.com/Price+Minimums+and+Maximums)
 5. In development mode you can't check transaction from the point 3.
 6. Test transaction can't be "cancelled, void, etc". The only way you could test is to use real credit card and then refund the subscription after it rebills. Personnaly I tested only NewSaleSuccess, NewSaleFailure responses.
-7. All received responses I attached to the [Useful links](https://github.com/DmytroVasin/ccbill_ruby#useful-links) paragraph.
+7. All received responses I attached to the [Useful links](https://github.com/DmytroVasin/ccbill_ruby#useful-links) paragraph. ( I little bit changed own info )
 8. Response Digest Value. In [Dynamic Pricing article](https://kb.ccbill.com/Dynamic+Pricing#Response_Digest_Value) was described that you can test digest value from response. That is true ONLY for `production` mode. In test mode digets value is not match.
 9. Do not create alot of FlexForm's. You can't delete them
-10. My Conversation with support I added to [WIKI]()
+
 
 # Useful Links:
 * [Dynamic Pricing](https://kb.ccbill.com/Dynamic+Pricing)
@@ -429,8 +424,7 @@ Please read next:
 * [Test Transactions and Credit Cards](https://kb.ccbill.com/How+do+I+set+up+a+user+to+process+test+transactions)
 * [Webhooks - prefil variables](https://kb.ccbill.com/Webhooks+User+Guide#Payment_Form)
 * [Price Minimums and Maximums](https://kb.ccbill.com/Price+Minimums+and+Maximums)
-* [Responses](??????????)
-* [Conversation with support](??????????)
+* [Responses](https://github.com/DmytroVasin/ccbill_ruby/tree/master/responses)
 
 TODO: TimeTable.
 

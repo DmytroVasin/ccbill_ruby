@@ -1,0 +1,15 @@
+{
+   "eventType": "Void",
+   "accountingAmount":"48.99",
+   "accountingCurrency":"USD",
+   "accountingCurrencyCode":"840",
+   "amount":"48.99",
+   "clientAccnum":"007687",
+   "clientSubacc":"0001",
+   "currency":"USD",
+   "currencyCode":"840",
+   "reason":"Threatened CB",
+   "subscriptionId":"0000006401000006464",
+   "timestamp":"2017-01-27 13:31:12",
+   "transactionId":"0000000001000006464"
+}
