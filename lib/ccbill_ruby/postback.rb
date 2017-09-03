@@ -6,34 +6,32 @@ module CCBill
       self.response_params = response_params
     end
 
-    def approval?
-      !denial?
-    end
-
-    def denial?
-      [:reasonForDeclineCode, :reasonForDecline, :denialId].any? do |key|
-        !response_params[key].to_s.strip.empty?
-      end
-    end
-
     def verified?
-      fail 'NOTE: Does not work on test env - Did not check for production.'
-      response_params[:responseDigest] == encode_digest_response
+      # NOTE: https://github.com/DmytroVasin/ccbill_ruby#response-digest-value
+      return true if CCBill.configuration.test?
+
+      response_params['dynamicPricingValidationDigest'] == encode_digest_response
     end
 
     private
 
+    def denied?
+      ['failureCode', 'failureReason'].any? do |key|
+        !response_params[key].to_s.strip.empty?
+      end
+    end
+
     def encode_digest_response
-      verify_fields = if approval?
+      verify_fields = if denied?
         [
-          response_params[:subscription_id],
-          '1',
+          response_params['transactionId'],
+          '0',
           CCBill.configuration.salt
         ]
       else
         [
-          response_params[:denialId],
-          '0',
+          response_params['subscriptionId'],
+          '1',
           CCBill.configuration.salt
         ]
       end

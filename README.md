@@ -391,6 +391,21 @@ Rebill Period: 30, 60, or 90 Days<br/>
 > Changes to your available price ranges require upper management approval. If you would like to make changes, please contact CCBill Merchant Support. We'll talk to you about the changes you want and submit your request to the right people. This process can take one or two business days to complete.
 
 
+# Response Digest Value:
+
+In [Dynamic Pricing article](https://kb.ccbill.com/Dynamic+Pricing#Response_Digest_Value) was described that you can test digest value from response. That is true ONLY for `production` mode. In test mode digets value is not match.
+
+Gem allows you to test that via:
+
+```ruby
+postback = CCBill::Postback.new(params)
+
+postback.verified?    #=> True/False
+```
+
+> Important! This method work only in 'non-test' mode.
+
+
 # Go To LIVE:
 
 The LINKS that you get from the Sandbox Mode page are different from the links that you get from the Live Mode page
@@ -410,7 +425,7 @@ Please read next:
 4. All prices must be between [$2.95 and $100](https://kb.ccbill.com/Price+Minimums+and+Maximums)
 5. In development mode you can't check transaction from the point 3.
 6. Test transaction can't be "cancelled, void, etc". The only way you could test is to use real credit card and then refund the subscription after it rebills. Personnaly I tested only NewSaleSuccess, NewSaleFailure responses.
-7. All received responses I attached to the [Useful links](https://github.com/DmytroVasin/ccbill_ruby#useful-links) paragraph. ( I little bit changed own info )
+7. All received responses I attached to the [Responses](https://github.com/DmytroVasin/ccbill_ruby/tree/master/responses). ( I little bit changed own info )
 8. Response Digest Value. In [Dynamic Pricing article](https://kb.ccbill.com/Dynamic+Pricing#Response_Digest_Value) was described that you can test digest value from response. That is true ONLY for `production` mode. In test mode digets value is not match.
 9. Do not create alot of FlexForm's. You can't delete them
 

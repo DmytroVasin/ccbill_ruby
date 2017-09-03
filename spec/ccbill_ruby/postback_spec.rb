@@ -1,188 +1,108 @@
+require 'json'
 require 'ccbill_ruby'
 
-describe CCBill::DynamicPricing do
-  before do
-    CCBill.configure do |config|
-      config.salt = '99999'
+describe CCBill::Postback do
+  context '#verified? within test mode' do
+    before do
+      CCBill.configure do |config|
+        config.salt = '99999'
+        config.mode = :test
+      end
+    end
+
+    # NOTE: https://github.com/DmytroVasin/ccbill_ruby#response-digest-value
+    it 'return true value on success response' do
+      success_params.merge!({
+        'subscriptionId' => 'fake_subscription',
+        'dynamicPricingValidationDigest' => 'fake_digest'
+      })
+
+      postback = CCBill::Postback.new(success_params)
+      expect(postback.verified?).to be_truthy
+    end
+
+    it 'return true value on deny response' do
+      failure_params.merge!({
+        'transactionId' => 'fake_subscription',
+        'dynamicPricingValidationDigest' => 'fake_digest'
+      })
+
+      postback = CCBill::Postback.new(failure_params)
+      expect(postback.verified?).to be_truthy
     end
   end
 
-  context '#approval?' do
-    it 'return true value on correct request' do
-      postback = CCBill::Postback.new(approval_params)
-      expect(postback.approval?).to be_truthy
+  context '#verified? within non test mode' do
+    before do
+      CCBill.configure do |config|
+        config.salt = '99999'
+        config.mode = :non_test
+      end
     end
-  end
 
-  context '#denial?' do
-    it 'return true value on correct request' do
-      postback = CCBill::Postback.new(approval_params)
-      expect(postback.approval?).to be_truthy
-    end
-  end
-
-  # pending: 'Does not work in test ENV ( according to support )'
-  xcontext 'verified?' do
-    context 'approval response' do
+    context 'success response' do
       it 'returns true for correct digest' do
         correct_digest = Digest::MD5.hexdigest(['77777', '1', '99999'].join)
 
-        approval_params.merge({
-          'subscription_id' => '77777',
-          'responseDigest' => correct_digest
+        success_params.merge!({
+          'subscriptionId' => '77777',
+          'dynamicPricingValidationDigest' => correct_digest
         })
 
-        postback = CCBill::Postback.new(approval_params)
+        postback = CCBill::Postback.new(success_params)
         expect(postback.verified?).to be_truthy
       end
 
       it 'returns false for incorrect digest' do
         incorrect_digest = 'some_fake_digest'
 
-        approval_params.merge({
-          'responseDigest' => incorrect_digest
+        success_params.merge!({
+          'dynamicPricingValidationDigest' => incorrect_digest
         })
 
-        postback = CCBill::Postback.new(approval_params)
+        postback = CCBill::Postback.new(success_params)
         expect(postback.verified?).to be_falsy
       end
     end
 
-    context 'denial response' do
+    context 'failure response' do
       it 'returns true for correct digest' do
         correct_digest = Digest::MD5.hexdigest(['77777', '0', '99999'].join)
 
-        denial_params.merge({
-          'denialId' => '77777',
-          'responseDigest' => correct_digest
+        failure_params.merge!({
+          'transactionId' => '77777',
+          'dynamicPricingValidationDigest' => correct_digest
         })
 
-        postback = CCBill::Postback.new(denial_params)
+        postback = CCBill::Postback.new(failure_params)
         expect(postback.verified?).to be_truthy
       end
 
       it 'returns false for incorrect digest' do
         incorrect_digest = 'some_fake_digest'
 
-        denial_params.merge({
-          'responseDigest' => incorrect_digest
+        failure_params.merge!({
+          'dynamicPricingValidationDigest' => incorrect_digest
         })
 
-        postback = CCBill::Postback.new(denial_params)
+        postback = CCBill::Postback.new(failure_params)
         expect(postback.verified?).to be_falsy
       end
     end
   end
 
-  def approval_params
-    {
-      "referer" => "",
-      "country" => "UA",
-      "ccbill_referer" => "",
-      "customer_fname" => "testss",
-      "rebills" => "0",
-      "subscription_id" => "0117230502000000023",
-      "password" => "",
-      "reservationId" => "",
-      "formDigest" => "185ab4bd5ce1f15c8382269e1237d7a6",
-      "price" => "$3.55(USD) for 30 days (non-recurring)",
-      "state" => "Cherkas`ka Oblast`",
-      "affiliate_system" => "",
-      "recurringPeriod" => "0",
-      "initialPrice" => "3.55",
-      "reasonForDeclineCode" => "",
-      "sku_id" => "",
-      "affiliateId" => "",
-      "productDesc" => " ",
-      "zipcode" => "12312312",
-      "reasonForDecline" => "",
-      "phone_number" => "",
-      "typeId" => "0001162789",
-      "order_id" => "88832222",
-      "paymentAccount" => "3c225b035f8fcd24b387c851e3604097",
-      "allowedTypes" => "",
-      "city" => "testss",
-      "accountingAmount" => "3.55",
-      "clientSubacc" => "0000",
-      "baseCurrency" => "840",
-      "referringUrl" => "none",
-      "initialPeriod" => "30",
-      "formName" => "003ff",
-      "denialId" => "",
-      "email" => "testss@gmail.com",
-      "start_date" => "2017-08-18 01:46:50",
-      "address1" => "testss",
-      "cardType" => "VISA",
-      "recurringPrice" => "0.00",
-      "responseDigest" => "43cfe4d2ba127210fc8bd79dadcf90b",
-      "ip_address" => "217.20.178.5",
-      "avsResponse" => "",
-      "cvv2Response" => "",
-      "prePaid" => "",
-      "customer_lname" => "testss",
-      "initialFormattedPrice" => "$3.55(USD)",
-      "affiliate" => "",
-      "currencyCode" => "840",
-      "clientAccnum" => "947687",
-      "recurringFormattedPrice" => "$0.00(USD)",
-      "username" => ""
-    }
+  def success_params
+    @success_params ||= json_data(filename: 'reccuring_new_sale_success.json')
   end
 
-  def denial_params
-    {
-      "allowedTypes"   =>"",
-      "referer"   =>"",
-      "country"   =>"UA",
-      "ccbill_referer"   =>"",
-      "city"   =>"test",
-      "accountingAmount"   =>"3.55",
-      "customer_fname"   =>"test",
-      "clientSubacc"   =>"0000",
-      "baseCurrency"   =>"840",
-      "referringUrl"   =>"none",
-      "rebills"   =>"0",
-      "subscription_id"   =>"",
-      "initialPeriod"   =>"30",
-      "password"   =>"",
-      "reservationId"   =>"",
-      "formDigest"   =>"185ab4bd5ce1f15c8382269e1237d7a6",
-      "price"   =>"$3.55(USD) for 30 days (non-recurring)",
-      "formName"   =>"003ff",
-      "denialId"   =>"0117229402000000109",
-      "state"   =>"Cherkas`ka Oblast`",
-      "email"   =>"test@gmail.com",
-      "start_date"   =>"2017-08-17 23:25:41",
-      "affiliate_system"=>"",
-      "recurringPeriod"   =>"0",
-      "initialPrice"   =>"3.55",
-      "address1"   =>"test",
-      "reasonForDeclineCode"   =>"BE-900",
-      "cardType"   =>"VISA",
-      "recurringPrice"   =>"0.00",
-      "sku_id"   =>"",
-      "responseDigest"   =>"f67ab90740d041b3a88d7e383f7c784b",
-      "ip_address"   =>"217.20.178.5",
-      "affiliateId"   =>"",
-      "avsResponse"   =>"",
-      "productDesc"   =>" ",
-      "zipcode"   =>"12312312",
-      "reasonForDecline"   =>"transaction declined",
-      "cvv2Response"   =>"",
-      "prePaid"   =>"",
-      "customer_lname"   =>"test",
-      "initialFormattedPrice"   =>"$3.55(USD)",
-      "phone_number"   =>"",
-      "affiliate"   =>"",
-      "currencyCode"   =>"840",
-      "order_id"   =>"88832222",
-      "clientAccnum"   =>"947687",
-      "recurringFormattedPrice"   =>"$0.00(USD)",
-      "username"   =>"",
-      "wc-api"   =>"WC_Gateway_CCBill",
-      "Action"   =>"Denial_Post",
-      "controller"   =>"ccbills",
-      "action"   =>"create"
-    }
+  def failure_params
+    @failure_params ||= json_data(filename: 'reccuring_new_sale_failure.json')
+  end
+
+  def json_data(filename:)
+    file_path = File.join('responses', filename)
+    file_content = File.read(file_path)
+
+    JSON.parse(file_content)
   end
 end
