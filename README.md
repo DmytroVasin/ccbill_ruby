@@ -399,11 +399,11 @@ Gem allows you to test that via:
 
 ```ruby
 postback = CCBill::Postback.new(params)
-
 postback.verified?    #=> True/False
 ```
 
 > Important! This method work only in 'non-test' mode.
+> Important! This method work only for `NewSaleSuccess` and `NewSaleFailure`
 
 
 # Go To LIVE:
