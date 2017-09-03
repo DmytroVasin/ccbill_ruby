@@ -32,12 +32,12 @@ module CCBill
         @errors << "#{field} is required." if !variables[field]
       end
 
-      unless (2.96..99.99).include?(variables[:initial_price].to_f)
+      unless (2.95..100.00).include?(variables[:initial_price].to_f)
         @errors << 'Initial price must be between $2.95 and $100.'
       end
 
       if recurring?
-        unless (2.96..99.99).include?(variables[:recurring_price].to_f)
+        unless (2.95..100.00).include?(variables[:recurring_price].to_f)
           @errors << 'Recurring price must be between $2.95 and $100.'
         end
       end

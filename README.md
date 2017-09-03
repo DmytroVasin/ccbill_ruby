@@ -12,12 +12,14 @@ This gem provides:
 - Easy Install
 - Getting started guide
 - Generator that creates
-  - Approve/Deny callback paths
-  - Background Post path
+  - Approve/Deny callback path
+  - Webhook callback path
 - Url/Form Generator for test and live mode
 
 
-> Important! CCBill provides two types of payment forms. FlexForms is our newest (and recommended) system. In this gem we use ONLY FlexForms.
+> Important! CCBill provides two types of payment forms.<br/>
+> FlexForms is our newest (and recommended) system.
+> In this gem we use ONLY FlexForms with DynamiPricing.
 
 
 # Getting started
@@ -34,12 +36,12 @@ Next, you need to run the generator:
 $ rails generate ccbill:install
 ```
 
-This will create a controller (if one does not exist) and configure it with the default actions. The generator also configures your config/routes.rb file to point to the CCBill controller.
+This will create a controller (if one does not exist) and configure it with the default actions. The generator also configures your `config/routes.rb` file to point to the CCBill controller.
 
 
 ## Example of usage:
 
-Simple version:
+Single billing transaction:
 ```ruby
 form = Ccbill::DynamicPricing.new({
   initial_price_in_cents: 355
@@ -51,15 +53,31 @@ form.valid?    #=> True/False
 form.url       #=> URL
 ```
 
-To prefill the form you can pass additional variables like: `customer_fname`, `customer_lname`, 'address1', etc. [Full list of variables](https://kb.ccbill.com/Webhooks+User+Guide#Payment_Form)
-
+Recurring transactions:
 ```ruby
 form = Ccbill::DynamicPricing.new({
-  initial_price_in_cents: 355
+  initial_price_in_cents: 3000,
   initial_period: 30,
-  order_id: 'Any configuration information',
+  recurring_price_in_cents: 100,
+  recurring_period: 30,
+  num_rebills: 99
+  order_id: 'Any configuration information'
+})
+
+form.valid?    #=> True/False
+form.url       #=> URL
+```
+
+To prefill the form you can pass additional variables like: `customer_fname`, `customer_lname`, `address1`, etc.<br/>
+[Full list of variables](https://kb.ccbill.com/Webhooks+User+Guide#Payment_Form)
+
+```ruby
+Ccbill::DynamicPricing.new({
+  ...
   customer_fname: 'Dmytro',
-  customer_lname: 'Vasin'
+  customer_lname: 'Vasin',
+  email: 'dmytro.vasin@gmail.com',
+  city: 'Dnepr'
 })
 ```
 
@@ -92,11 +110,10 @@ Before reading this part - please read [Setup guide](#setup-guide)
   # app/controllers/callbacks/ccbills_controller.rb
   module Callbacks
     class CcbillsController < ApplicationController
-      # before_action :check_ccbill_callback, only: :create
 
       # GET: Redirect from payment system after approval/deny.
       def show
-        case response_params[:mppResponse]
+        case params[:mppResponse]
         when 'CheckoutSuccess'
           flash[:notice] = "Payment was successfully paid"
         when 'CheckoutFail'
@@ -108,17 +125,16 @@ Before reading this part - please read [Setup guide](#setup-guide)
         redirect_to root_url
       end
 
-      # POST: Post Back
+      # POST: Webhooks
       def create
-        postback = CCBill::Postback.new(response_params)
-
-        if postback.approval?
-          # Do something "Approval" postback.
-        else
-          # Do something "Deny" postback.
+        begin
+          # Your code goes here.
+        rescue StandardError => error
+          # I assume we should put `rescue` statement because CCBill will call our server again and again untill he will receive 200
+          # When there was failure of sending webhooks or the system was under maintenance at the moment.
         end
 
-        head :no_content
+        head :ok
       end
 
       private
@@ -130,85 +146,84 @@ Before reading this part - please read [Setup guide](#setup-guide)
   end
 ```
 
-# Payment Flow
+# Payment Flow ( via DynamiPricing )
 
-To make some payment through CCBill via DynamiPricing:
-
-The payment form is the CCBill form that will be displayed to customers after they choose to check out using CCBill. The payment form accepts customer payment information, processes the payment, and returns the customer to your Site through callbacks ( GET ) where you can catche the response and do proper redirect:
+### TL; DR;
+- On the Site User clicks by generated link. After that user will be redirect to the `payment form`
+- The `payment form` is the CCBill form that will be displayed to customers after they choose to check out using CCBill. The `payment form` accepts customer payment information
+- After processes the payment CCBill returns the customer to the Site through specified callbacks ( GET: `callbacks/ccbills#show` )
+- Besides CCBill will produce another request ( Webhook request ) with status of the payment attempt. ( POST: `callbacks/ccbills#create` )
 
 ### Step 1:
 
-1. You should generate LINK that contains information about order/subscription
+1. You should generate link.<br/>
+That link should contains information about order/subscription or etc. ( What order exactly was paid )
 
-This gem will help you in this, next script will generate link:
+This gem will help you in this case. Next script will generate link:
 ```ruby
 Ccbill::DynamicPricing.new({
   initial_price_in_cents: 355
   initial_period: 30,
-  order_id: 'Any configuration information'
+  order_id: 'Any additional information'
 }).url
 ```
 
-This link contains variables: `initial_price`, `initial_period` and additional variable `order_id`.  To enhance security, that url contains `FormDigest` value. The formDigest value is a hex-encoded MD5 hash, calculated using a combination of the fields and a salt value. [More information](https://kb.ccbill.com/Dynamic+Pricing+User+Guide#Generating_the_MD5_Hash)
+This link contains variables: `initial_price`, `initial_period` and additional variable `order_id`.<br/>
+To enhance security, generated url will contains `formDigest` value. The `formDigest` value is a hex-encoded MD5 hash, calculated using a combination of the fields and a salt value. [Read More](https://kb.ccbill.com/Dynamic+Pricing+User+Guide#Generating_the_MD5_Hash)
 
 
 ### Step 2:
 
-2. By clicking on this link user will be redirected to the CCBill payment form.
-This form is generated by admin. Find out more at [Configure your CCBill Account:](#configure-your-ccbill-account) section.
+2. By clicking on this link user will be redirected to the CCBill `payment form`.<br/>
+This form was generated by the admin inside CCBill admin panel.<br/>
+Find out more at [Configure your CCBill Account](#configure-your-ccbill-account) section.
 
 When user fill-in all fields. He can follow 2 way: `Approve` and `Deny`
 
 But here is two thing:
-1 On `Deny` response: App will propose to Try Again (User will stay at the payment system)
-2 On `Deny` response: App will receive `Deny` postback. ( `callbacks/ccbills#create` ). With Deny attributes.
-3 To Receive `Deny` redirect:
-> The reason you aren’t redirected to denial URL is because our system sees these declines as ‘soft’ declines, and by default, you need to have at least 3 soft declines in a row until you are redirected to denial url. So if you want to test denial redirection, you will need to click ‘Try again’ and fill out the credit card number for three consecutive times and you will be redirected. If the consumer is ‘hard’ declined(for example transaction is denied by consumer’s bank), he would be redirected after first form submission. Additionally, we can turn off this rule to have soft denial three times before redirection and if you would like us to do so, please confirm.
-4. Test Cards
-[Test cards](https://kb.ccbill.com/How+do+I+set+up+a+user+to+process+test+transactions) you can find here. But one thing you should remember: Only `CVV` metters:
->  When performing test transactions in Sandbox mode, cvv2 higher then 300 will result in approval even though you used denial credit card. If you try to test it in live mode, you would receive denial no matter what cvv2 you are using.
+1. On `Deny` response: App will propose to Try Again (User will stay at the payment system)
+2. On `Deny` response: App will receive `Deny` webhook callback (`callbacks/ccbills#create`) that will contain `Deny` attributes.
+3. To Receive `Deny` redirect user must do 3 `Deny` attempt.
 
-### Step 2:
+> Explanation: The reason you aren’t redirected to denial URL is because our system sees these declines as ‘soft’ declines, and by default, you need to have at least 3 soft declines in a row until you are redirected to denial url. So if you want to test denial redirection, you will need to click ‘Try again’ and fill out the credit card number for three consecutive times and you will be redirected. If the consumer is ‘hard’ declined(for example transaction is denied by consumer’s bank), he would be redirected after first form submission. Additionally, we can turn off this rule to have soft denial three times before redirection and if you would like us to do so, please confirm.
 
-`Approval Path` and `Deny Path` we set up [here](#create-an-approval-url)
+4. Test Cards<br/>
+Test cards you can [find here](https://kb.ccbill.com/How+do+I+set+up+a+user+to+process+test+transactions).<br/>
+But one thing you should remember: Only `CVV` metters:<br/>
 
-**Approval Path**
+> Explanation: When performing test transactions in Sandbox mode, cvv2 higher then 300 will result in approval even though you used denial credit card. If you try to test it in live mode, you would receive denial no matter what cvv2 you are using.
 
-This is the path customers take when their transaction is approved. The Approval Tile is always below the Primary and Deny Tile. When editing the Approval Path, your options are limited.
+`Approval Path` and `Deny Path` was specified when we create FlexForm [here](#create-a-new-flexform)
 
-**Deny Path**
+**Approval Path**<br/>
+Customer will follow by this path if his transaction will be approved. You can find `Approval Tile` below the `Primary` and `Deny Tile`.
 
+**Deny Path**<br/>
 This is the path consumers take when they are declined on a transaction. They will be redirected to the deny path to try again. The Deny Tile is always to the right of the Primary Tile.
 
-To set up a Deny Path:
-
-- Click the Deny Tile. A new window has opened. It will be very similar to the one you saw when you created the Primary Tile.
-- Select one of several redirect options along the left side of the screen.
-  - New Form. Create a new FlexForm as you did for the Primary Tile.
-  - Existing Form. Use a previously made Form.
-  - URL. Add an external or internal link. Send customers back to your website or to a third party payment form.
-
-![Deny Path](https://raw.githubusercontent.com/DmytroVasin/ccbill_ruby/master/images/redirect_path.png)
+![Approval and Deny paths](https://raw.githubusercontent.com/DmytroVasin/ccbill_ruby/master/images/approval-and-deny.png)
 
 
 ### Step 3:
-After previouse steps, ccbill returns the customer to your Site through callbacks ( GET ) where you can catche the response and do proper redirect:
+After previouse steps, ccbill redirects the customer to the Site through callbacks ( GET ) where you can catche the response and do proper redirect:
 
 ```ruby
   callbacks_ccbill GET    /callbacks/ccbill(.:format)  callbacks/ccbills#show
-                   POST   /callbacks/ccbill(.:format)  callbacks/ccbills#create
 ```
 
 ### Step 4:
+When a transaction is approved or denied, data will be sent to the Webhooks URL, if that event has been selected within the configuration. The data sent will include everything passed into the payment form along with the data entered into the payment form by the consumer, excluding payment information. This data can be parsed and handled
 
-Postback: According to `POST` action in your controller.
+Webhook: According to `POST` action in your controller:<br/>
+```ruby
+                   POST   /callbacks/ccbill(.:format)  callbacks/ccbills#create
+```
 
-Background Post allows Merchants to receive data posts from our system to a script that the Merchant creates. Merchants can parse that data from the script into their databases/tables for member tracking. Background Post only works for NEW transactions.
+Webhooks is some kind of background callback to the app that happens on each attempt to Pay.<br>
+This callback contains a lot of information of the attempt. For example: [NewSaleSuccess](https://kb.ccbill.com/Webhooks+User+Guide#NewSaleSuccess)
 
-Some kind of background callback to the app that happens on each attempt to Pay
-
-This callback contains a lot of information of the attempt: [Background Post](https://kb.ccbill.com/Background+Post)
-
+> WebHooks vs Background Post
+> When you use webhooks, there is no need to use Postback also. The main difference is that Postback only sends notifications for approved and denied transactions, and webhooks sends posts for all existing events, for example, renewal, cancellation, failed rebill, refund, chargeback, void, etc. The complete list of events can be found [here](https://kb.ccbill.com/Webhooks+User+Guide#Webhooks_Notifications)
 
 
 # Setup guide
@@ -276,7 +291,7 @@ Please work with your CCBill support representative to activate Dynamic Pricing 
 
 Please note that if Dynamic Pricing is enabled on the subaccount level, ALL signup forms on that subaccount must use Dynamic Pricing in order to function correctly. This includes forms created on the subaccount prior to Dynamic Pricing being enabled. If Dynamic Pricing is enabled only on a particular form and not the entire subaccount, other forms on that subaccount will not be required to use Dynamic Pricing.
 
-![URL Library](https://raw.githubusercontent.com/DmytroVasin/ccbill_ruby/master/images/url_library.png)
+![Dynamic Pricing](https://raw.githubusercontent.com/DmytroVasin/ccbill_ruby/master/images/dynamic-price.png)
 
 ### Creating a Salt / Encryption Key
 
@@ -302,10 +317,10 @@ Here is standart [Getting Started with Flex Froms](https://kb.ccbill.com/FlexFor
 
 #### Visit FlexForms:
 - Ensure All is selected in the top Client Account drop-down menu. FlexForms are not specific to sub accounts, and cannot be managed when a sub account is selected.
-- Navigate to the FlexForms Systems tab in the top menu bar and select FlexForms Payment Links. All existing forms will be displayed in a table.
+- Navigate to the `FlexForms Systems` tab in the top menu bar and select `FlexForms Payment Links`. All existing forms will be displayed in a table.
 - Make sure that you in sendbox ( Top left corner )
 
-#### Create an Approval URL
+#### Create Library of URLs (Approval and Deny)
 
 - Click the **URLs Library** button in the upper-right to create a new URL. The Saved URLs Editor dialog displays.
 - Create Payment Success URL
@@ -316,15 +331,14 @@ Here is standart [Getting Started with Flex Froms](https://kb.ccbill.com/FlexFor
 - Click Save to commit your changes.
 
 > Important:
-> 1. Do not create alot of flex-form. You can't delete them!
-> 2. This is URLS ( GET ) where user will be redirected after success/deny payment.
-> 3. We set `mppResponse=CheckoutSuccess` and `mppResponse=CheckoutFail` because we use this attribute at `callbacks/ccbills#show` action.
+> 2. This is URLS ( GET ) will be used to specify where CCBill should redirect User after success/deny payment.
+> 3. We set `mppResponse=CheckoutSuccess` and `mppResponse=CheckoutFail` because we use this attribute at `callbacks/ccbills#show` action to determine kind of response (success/fail).
 
 ![URLs Editor](https://raw.githubusercontent.com/DmytroVasin/ccbill_ruby/master/images/url_editor.png)
 
 #### Create a New FlexForm
 
-- Click the `Add New** button in the upper-left to create a new form.
+- Click the **Add New** button in the upper-left to create a new form.
 - The **A New Form** dialog is displayed:
   - **Payment Flow Name**. At the top, enter a name for the new payment flow (this will be different than the form name, as a single form can be used in multiple flows). Forexample: 'Dev Form'
   - **Form Name**. Under Form Name, enter a name for the form. Forexample: '001ff'
@@ -333,33 +347,53 @@ Here is standart [Getting Started with Flex Froms](https://kb.ccbill.com/FlexFor
   - Save the form
 - Edit the Flow
   - Approval redirect to the Site
-    - Click the arrow button to the left of your new flow to view the details. ( Screenshot below )
+    - Click the arrow button to the left of your new flow to view the details. Approval Tile.
     - Under the green Approve arrow, click the square to modify the action.
     - **Approval URL**. In the left menu, select A URL. Select **Select a Saved URL** and select the URL your created earlier (e.g. Payment Success).
     - **Redirect Time**. Select a redirect time of 1 second using the slider at the bottom and save the form. ( e.g. 4 seconds )
   - Deny redirect to the Site
-    - Under the red Deny arrow, click the square to modify the action.
-    - **Approval URL. In the left menu, select A URL. Select **Select a Saved URL** and select the URL your created earlier (e.g. Payment Decline`).
+    - Under the red Deny arrow, click the square to modify the action. Deny Tile.
+    - **Approval URL**. In the left menu, select A URL. Select **Select a Saved URL** and select the URL your created earlier (e.g. `Payment Decline`).
     - **Redirect Time**. Select a redirect time of 1 second using the slider at the bottom and save the form. ( e.g. 7 seconds )
 - Flex ID. Make note of the Flex ID: this value will be entered into the your configuration file. ( `config/initializers/ccbill.rb` )
 
+> You may read how to setup instant redirect [here](#dev-expirience)
 
-#### Background Post
+> Important:
+> Do not create alot of FlexForm's. You can't delete them!
 
-While still in the **Sub Account Admin** section, select **Advanced** from the left menu. Notice the top section titled **Background Post Information**. We will be modifying the **Approval Post URL** and **Denial Post URL** fields.
+![Deny Path](https://raw.githubusercontent.com/DmytroVasin/ccbill_ruby/master/images/redirect_path.png)
 
-Path | URL
---- | ---
-**Approval Post URL** | `http://[SiteHost or Ngrok]/callbacks/ccbill`
-**Denial Post URL** | `http://[SiteHost or Ngrok]/callbacks/ccbill`
 
-CCBill calls this URL in background.
+#### Webhooks
 
-Note: That will be `POST` request. In our case It will call `callbacks/ccbills#create` action. In this action based on patams we will find-out what request was called.
+In your CCBill admin interface, navigate to **Sub Account Admin** section, select **Webhooks** from the left menu.<br>
+Fill in `Webhook URL` text box with the `http://[SiteHost or Ngrok]/callbacks/ccbill` url. CCBill will call specified URL in background.<br>
+Make sure to check 'all' check boxes on this page and pick JSON Webhook Format<br>
 
-![Background Post Information](https://raw.githubusercontent.com/DmytroVasin/ccbill_ruby/master/images/background_post_information.png)
+Note: That will be `POST` request.<br>
+In our case It will call `callbacks/ccbills#create` action.<br>
+In this action based on params we will find-out what request was called.
 
-**Your CCBill account is now configured**
+![Webhook information](https://raw.githubusercontent.com/DmytroVasin/ccbill_ruby/master/images/webhooks.png)
+
+**:sparkles: Your CCBill account is now configured :sparkles:**
+
+
+# Price Restrictions
+
+Price Minimums and Maximums<br/>
+All Merchants are assigned a default structure in line with the following:
+
+Pricing<br/>
+Minimum: $2.95 USD<br/>
+Maximum: $100.00 USD<br/>
+
+Time Periods<br/>
+Initial Period: 2-365 Days<br/>
+Rebill Period: 30, 60, or 90 Days<br/>
+
+> Changes to your available price ranges require upper management approval. If you would like to make changes, please contact CCBill Merchant Support. We'll talk to you about the changes you want and submit your request to the right people. This process can take one or two business days to complete.
 
 
 # Go To LIVE:
@@ -378,12 +412,13 @@ Please read next:
 2. Deny/Approval paths - Write to support to set "Redirect time in seconds:" to "Immediately". Without this option after approve/deny user will be redirected to the blank page with the URL of redirect ( image below ) and that page can't be customized, with this option user will instantly be redirected.
 ![Redirect After Aprove](https://raw.githubusercontent.com/DmytroVasin/ccbill_ruby/master/images/redirect_after_approval.png)
 3. Check transactions: Admin are able to check the number and amount of test transactions you had in selected timeframe. In order to do so, please navigate to Reports >> Alphabetical list >> C >> Credit/check transactions >> select date range and select Test transactions from Options dropdown menu.
-4. All prices must be between $2.95 and $100.
-5. In development mode you can`t check transaction from the point 3.
-6. Test transaction can't be "cancelled, void, etc". Personnaly I tested only NewSaleSuccess, NewSaleFailure responses.
-7. All received responses I attached to the [Useful links:](https://github.com/DmytroVasin/ccbill_ruby#useful-links) paragraph.
+4. All prices must be between [$2.95 and $100](https://kb.ccbill.com/Price+Minimums+and+Maximums)
+5. In development mode you can't check transaction from the point 3.
+6. Test transaction can't be "cancelled, void, etc". The only way you could test is to use real credit card and then refund the subscription after it rebills. Personnaly I tested only NewSaleSuccess, NewSaleFailure responses.
+7. All received responses I attached to the [Useful links](https://github.com/DmytroVasin/ccbill_ruby#useful-links) paragraph.
 8. Response Digest Value. In [Dynamic Pricing article](https://kb.ccbill.com/Dynamic+Pricing#Response_Digest_Value) was described that you can test digest value from response. That is true ONLY for `production` mode. In test mode digets value is not match.
-
+9. Do not create alot of FlexForm's. You can't delete them
+10. My Conversation with support I added to [WIKI]()
 
 # Useful Links:
 * [Dynamic Pricing](https://kb.ccbill.com/Dynamic+Pricing)
@@ -392,12 +427,12 @@ Please read next:
 * [FlexForms Sandbox](https://kb.ccbill.com/FlexForms+Sandbox?page_ref_id=452)
 * [FlexForms Form Status and Live Mode](https://kb.ccbill.com/FlexForms+Form+Status+and+Live+Mode?page_ref_id=453)
 * [Test Transactions and Credit Cards](https://kb.ccbill.com/How+do+I+set+up+a+user+to+process+test+transactions)
-* [Background Post](https://kb.ccbill.com/Background+Post)
 * [Webhooks - prefil variables](https://kb.ccbill.com/Webhooks+User+Guide#Payment_Form)
+* [Price Minimums and Maximums](https://kb.ccbill.com/Price+Minimums+and+Maximums)
+* [Responses](??????????)
+* [Conversation with support](??????????)
 
-TODO: Add responses.
-TODO: Circle CI.
-TODO: TimeTable ?
+TODO: TimeTable.
 
 # License
 

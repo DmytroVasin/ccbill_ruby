@@ -1,10 +1,9 @@
 module Callbacks
   class CcbillsController < ApplicationController
-    # before_action :check_ccbill_callback, only: :create
 
     # GET: Redirect from payment system after approval/deny.
     def show
-      case response_params[:mppResponse]
+      case params[:mppResponse]
       when 'CheckoutSuccess'
         flash[:notice] = "Payment was successfully paid"
       when 'CheckoutFail'
@@ -16,7 +15,7 @@ module Callbacks
       redirect_to root_url
     end
 
-    # POST: Post Back
+    # POST: Webhooks
     def create
       postback = CCBill::Postback.new(response_params)
 

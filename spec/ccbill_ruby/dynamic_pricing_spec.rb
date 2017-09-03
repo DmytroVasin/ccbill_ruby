@@ -64,7 +64,7 @@ describe CCBill::DynamicPricing do
       end
     end
 
-    context "recurring transactions" do
+    context 'recurring transactions' do
       context 'is invalid' do
         let(:options) {{
           recurring_period: 30
