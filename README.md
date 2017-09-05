@@ -414,7 +414,11 @@ postback.verified?    #=> True/False
 
 The LINKS that you get from the Sandbox Mode page are different from the links that you get from the Live Mode page
 
-Do not forget to create another FlexForm for the production env.
+Do not forget to:<br>
+* Create another FlexForm for the production env.
+* Fix Webhook URL for Subaccount ( from ngrok to real url )
+* Fix Payment Decline / Payment Success redirect URL inside URL library ( from ngrok to real url )
+
 
 Please read next:
 - [FlexForms Sandbox](https://kb.ccbill.com/FlexForms+Sandbox?page_ref_id=452)
