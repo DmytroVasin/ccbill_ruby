@@ -432,7 +432,7 @@ Please read next:
 1. Ngrok. For the local machine use `ngrok` to set real links from the Ccbill.
 2. Deny/Approval paths - Write to support to set "Redirect time in seconds:" to "Immediately". Without this option after approve/deny user will be redirected to the blank page with the URL of redirect ( image below ) and that page can't be customized, with this option user will instantly be redirected.
 ![Redirect After Aprove](https://raw.githubusercontent.com/DmytroVasin/ccbill_ruby/master/images/redirect_after_approval.png)
-3. Check transactions: Admin are able to check the number and amount of test transactions you had in selected timeframe. In order to do so, please navigate to Reports >> Alphabetical list >> C >> Credit/check transactions >> select date range and select Test transactions from Options dropdown menu.
+3. Check transactions: Admin are able to check the number and amount of test transactions you had in selected timeframe. In order to do so, please navigate to *Reports* / *Alphabetical list* / *C* / *Credit/check transactions* / select date range and select Test transactions from *Options dropdown menu*.
 4. All prices must be between [$2.95 and $100](https://kb.ccbill.com/Price+Minimums+and+Maximums)
 5. In development mode you can't check transaction from the point 3.
 6. Test transaction can't be "cancelled, void, etc". The only way you could test is to use real credit card and then refund the subscription after it rebills. Personnaly I tested only NewSaleSuccess, NewSaleFailure responses.
