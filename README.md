@@ -148,6 +148,9 @@ Before reading this part - please read [Setup guide](#setup-guide)
 # Payment Flow ( via DynamiPricing )
 
 ### TL; DR;
+
+![A representation of how CCBill Webhooks work](https://raw.githubusercontent.com/DmytroVasin/ccbill_ruby/master/images/webhooks_diagram.png)
+
 - On the Site User clicks by generated link. After that user will be redirect to the `payment form`
 - The `payment form` is the CCBill form that will be displayed to customers after they choose to check out using CCBill. The `payment form` accepts customer payment information
 - After processes the payment CCBill returns the customer to the Site through specified callbacks ( GET: `callbacks/ccbills#show` )
@@ -451,6 +454,7 @@ Please read next:
 * [FlexForms Sandbox](https://kb.ccbill.com/FlexForms+Sandbox?page_ref_id=452)
 * [FlexForms Form Status and Live Mode](https://kb.ccbill.com/FlexForms+Form+Status+and+Live+Mode?page_ref_id=453)
 * [Test Transactions and Credit Cards](https://kb.ccbill.com/How+do+I+set+up+a+user+to+process+test+transactions)
+* [CCBill Webhooks](https://kb.ccbill.com/Webhooks)
 * [Webhooks - prefil variables](https://kb.ccbill.com/Webhooks+User+Guide#Payment_Form)
 * [Price Minimums and Maximums](https://kb.ccbill.com/Price+Minimums+and+Maximums)
 * [Responses](https://github.com/DmytroVasin/ccbill_ruby/tree/master/responses)
