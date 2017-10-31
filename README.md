@@ -459,8 +459,6 @@ Please read next:
 * [Price Minimums and Maximums](https://kb.ccbill.com/Price+Minimums+and+Maximums)
 * [Responses](https://github.com/DmytroVasin/ccbill_ruby/tree/master/responses)
 
-TODO: Datalink.
-
 # License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
