@@ -423,7 +423,7 @@ Do not forget to:<br>
 * Fix Webhook URL for Subaccount ( from ngrok to real url, or add new one )
 * Fix Payment Decline / Payment Success redirect URL inside URL library ( from ngrok to real url, or add new one )
 * Get and set new subaccount ID inside config.
-* WARN: New subaccount contains new SALT. Do not forget to change it.
+* WARN: Check SALT one more time.
 
 Please read next:
 - [FlexForms Sandbox](https://kb.ccbill.com/FlexForms+Sandbox?page_ref_id=452)
