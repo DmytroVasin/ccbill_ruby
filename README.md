@@ -418,10 +418,12 @@ postback.verified?    #=> True/False
 The LINKS that you get from the Sandbox Mode page are different from the links that you get from the Live Mode page
 
 Do not forget to:<br>
-* Create another FlexForm for the production env.
-* Fix Webhook URL for Subaccount ( from ngrok to real url )
-* Fix Payment Decline / Payment Success redirect URL inside URL library ( from ngrok to real url )
-
+* Setup new account with dynamic price.
+* Create another FlexForm for the production (live) env.
+* Fix Webhook URL for Subaccount ( from ngrok to real url, or add new one )
+* Fix Payment Decline / Payment Success redirect URL inside URL library ( from ngrok to real url, or add new one )
+* Get and set new subaccount ID inside config.
+* WARN: New subaccount contains new SALT. Do not forget to change it.
 
 Please read next:
 - [FlexForms Sandbox](https://kb.ccbill.com/FlexForms+Sandbox?page_ref_id=452)
