@@ -425,6 +425,21 @@ Do not forget to:<br>
 * Get and set new subaccount ID inside config.
 * WARN: Check SALT one more time.
 
+Important Note:
+
+![Subscription note](http://messages.hellobits.com/warning.svg?message=Important:%20Subscriptions)
+According to CCBill support: It is not possible to have direct payment ( like cart/order ) and subscription on same account. To fix this, you must add another CCBill subAccount to the form ( Encrypted key you can setup the same inside your admin panel at CCBill ).
+
+```
+  url = CCBill::DynamicPricing.new({
+    sub_account:              ENV.fetch('RECURRING_CCBILL_SUB_ACCOUNT'),
+    initial_price_in_cents:   cents,
+    ...
+  }).url
+```
+
+Or you can fix that via creating PR.
+
 Please read next:
 - [FlexForms Sandbox](https://kb.ccbill.com/FlexForms+Sandbox?page_ref_id=452)
 - [FlexForms Form Status and Live Mode](https://kb.ccbill.com/FlexForms+Form+Status+and+Live+Mode?page_ref_id=453)
