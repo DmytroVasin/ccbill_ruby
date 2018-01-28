@@ -462,6 +462,34 @@ Please read next:
 * Use [md5-generator](http://www.miraclesalad.com/webtools/md5.php) and put "40.0030840YOUR_SALT_ENCRYPTED_KEY"
 * Compare it with received from that Gem.
 
+# Subscriptions and Single Payments.
+Sometimes we need to implement subscriptions ( reccuring payment ) and Single payment aka orders via cart( non reccuring payments ) at the same time:
+
+Here is two notes that you should remember:
+1. You can not do that on the same subaccount ( You should create two subaccounts )
+1.1 First subaccount for subscriptions
+1.2 Second subaccount for direct payment ( single payment )
+
+Then your code will looks like that:
+
+```
+  def self.reccuring_url(item:, cents:, payer:, period: )
+    CCBill::DynamicPricing.new({
+      sub_account:              ENV.fetch('RECURRING_CCBILL_SUB_ACCOUNT'),
+      initial_price_in_cents:   cents,
+      initial_period:           period,
+      ...
+
+  def self.non_reccuring_url(item:, cents:, payer:)
+    CCBill::DynamicPricing.new({
+      sub_account:              ENV.fetch('CCBILL_SUB_ACCOUNT'),
+      initial_price_in_cents:   cents,
+      initial_period:           30,
+```
+
+> Important!
+> You must turn on Multi-sign feature for the first subaccount ( subaccount for subscriptions )!
+> Otherwise you will receive exception for second and subsequent subscriptions.
 
 
 # Useful Links:
